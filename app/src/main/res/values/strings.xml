@@ -1,0 +1,226 @@
+<resources>
+    <string name="app_name">Harmony Compass</string>
+
+    <string-array name="key_signatures">
+        <item>♯0(ハ長調/イ短調)</item>
+        <item>♯1(ト長調/ホ短調)</item>
+        <item>♯2(ニ長調/ロ短調)</item>
+        <item>♯3(イ長調/嬰へ短調)</item>
+        <item>♯4(ホ長調/嬰ハ短調)</item>
+        <item>♯5(ロ長調/嬰ト短調)</item>
+        <item>♯6(嬰ヘ長調/嬰ニ短調)</item>
+        <item>♯7(嬰ハ長調)</item>
+        <item>♭1(ヘ長調/ニ短調)</item>
+        <item>♭2(変ロ長調/ト短調)</item>
+        <item>♭3(変ホ長調/ハ単調)</item>
+        <item>♭4(変イ長調/へ短調)</item>
+        <item>♭5(変ニ長調/変ロ短調)</item>
+        <item>♭6(変ト長調)</item>
+        <item>♭7(変ハ長調)</item>
+    </string-array>
+
+    <string-array name="key_signatures_major_c">
+        <item>♯0(C Maj)</item>
+        <item>♯1(G Maj)</item>
+        <item>♯2(D Maj)</item>
+        <item>♯3(A Maj)</item>
+        <item>♯4(E Maj)</item>
+        <item>♯5(B Maj)</item>
+        <item>♯6(F♯Maj)</item>
+        <item>♯7(C♯Maj)</item>
+        <item>♭1(F Maj)</item>
+        <item>♭2(B♭Maj)</item>
+        <item>♭3(E♭Maj)</item>
+        <item>♭4(A♭Maj)</item>
+        <item>♭5(D♭Maj)</item>
+        <item>♭6(G♭Maj)</item>
+        <item>♭7(C♭Maj)</item>
+    </string-array>
+
+    <string-array name="key_signatures_minor_c">
+        <item>♯0(a Min)</item>
+        <item>♯1(e Min)</item>
+        <item>♯2(b Min)</item>
+        <item>♯3(f♯Min)</item>
+        <item>♯4(c♯Min)</item>
+        <item>♯5(g♯Min)</item>
+        <item>♯6(d♯Min)</item>
+        <item>♯7(a♯Min)</item>
+        <item>♭1(d Min)</item>
+        <item>♭2(g Min)</item>
+        <item>♭3(c Min)</item>
+        <item>♭4(f Min)</item>
+        <item>♭5(b♭Min)</item>
+        <item>♭6(e♭Min)</item>
+        <item>♭7(a♭Min)</item>
+    </string-array>
+
+    <string-array name="key_signatures_major_bb">
+        <item>♯0(C Maj/B♭Maj)</item>
+        <item>♯1(G Maj/F Maj)</item>
+        <item>♯2(D Maj/C Maj)</item>
+        <item>♯3(A Maj/G Maj)</item>
+        <item>♯4(E Maj/D Maj)</item>
+        <item>♯5(B Maj/A Maj)</item>
+        <item>♯6(F♯Maj/E Maj)</item>
+        <item>♯7(C♯Maj/B Maj)</item>
+        <item>♭1(F Maj/E♭Maj)</item>
+        <item>♭2(B♭Maj/A♭Maj)</item>
+        <item>♭3(E♭Maj/D♭Maj)</item>
+        <item>♭4(A♭Maj/G♭Maj)</item>
+        <item>♭5(D♭Maj/B Maj)</item>
+        <item>♭6(G♭Maj/E Maj)</item>
+        <item>♭7(C♭Maj/A Maj)</item>
+    </string-array>
+
+    <string-array name="key_signatures_minor_bb">
+        <item>♯0(a Min/g Min)</item>
+        <item>♯1(e Min/d Min)</item>
+        <item>♯2(b Min/a Min)</item>
+        <item>♯3(f♯Min/e Min)</item>
+        <item>♯4(c♯Min/b Min)</item>
+        <item>♯5(g♯Min/f♯Min)</item>
+        <item>♯6(d♯Min/c♯Min)</item>
+        <item>♯7(a♯Min/g♯Min)</item>
+        <item>♭1(d Min/c Min)</item>
+        <item>♭2(g Min/f Min)</item>
+        <item>♭3(c Min/b♭Min)</item>
+        <item>♭4(f Min/e♭Min)</item>
+        <item>♭5(b♭Min/a♭Min)</item>
+        <item>♭6(e♭Min/d♭Min)</item>
+        <item>♭7(a♭Min/g♭Min)</item>
+    </string-array>
+
+    <!-- E♭管（アルトサックスなど） -->
+    <string-array name="key_signatures_major_eb">
+        <item>♯0(C Maj/E♭Maj)</item>
+        <item>♯1(G Maj/B♭Maj)</item>
+        <item>♯2(D Maj/F Maj)</item>
+        <item>♯3(A Maj/C Maj)</item>
+        <item>♯4(E Maj/G Maj)</item>
+        <item>♯5(B Maj/D Maj)</item>
+        <item>♯6(F♯Maj/A Maj)</item>
+        <item>♯7(C♯Maj/E Maj)</item>
+        <item>♭1(F Maj/A♭Maj)</item>
+        <item>♭2(B♭Maj/D♭Maj)</item>
+        <item>♭3(E♭Maj/G♭Maj)</item>
+        <item>♭4(A♭Maj/B Maj)</item>
+        <item>♭5(D♭Maj/E Maj)</item>
+        <item>♭6(G♭Maj/A Maj)</item>
+        <item>♭7(C♭Maj/D Maj)</item>
+    </string-array>
+
+    <string-array name="key_signatures_minor_eb">
+        <item>♯0(a Min/c Min)</item>
+        <item>♯1(e Min/g Min)</item>
+        <item>♯2(B Min/G Min)</item>
+        <item>♯3(f♯Min/a Min)</item>
+        <item>♯4(c♯Min/e Min)</item>
+        <item>♯5(g♯Min/b Min)</item>
+        <item>♯6(d♯Min/f♯Min)</item>
+        <item>♯7(a♯Min/c♯Min)</item>
+        <item>♭1(d Min/f Min)</item>
+        <item>♭2(g Min/b♭Min)</item>
+        <item>♭3(c Min/e♭Min)</item>
+        <item>♭4(f Min/a♭Min)</item>
+        <item>♭5(b♭Min/d♭Min)</item>
+        <item>♭6(e♭Min/g♭Min)</item>
+        <item>♭7(a♭Min/b Min)</item>
+    </string-array>
+
+    <!-- F管（ホルンなど） -->
+    <string-array name="key_signatures_major_f">
+        <item>♯0(C Maj/F Maj)</item>
+        <item>♯1(G Maj/C Maj)</item>
+        <item>♯2(D Maj/G Maj)</item>
+        <item>♯3(A Maj/D Maj)</item>
+        <item>♯4(E Maj/A Maj)</item>
+        <item>♯5(B Maj/E Maj)</item>
+        <item>♯6(F♯Maj/B Maj)</item>
+        <item>♯7(C♯Maj/F♯Maj)</item>
+        <item>♭1(F Maj/B♭Maj)</item>
+        <item>♭2(B♭Maj/E♭Maj)</item>
+        <item>♭3(E♭Maj/A♭Maj)</item>
+        <item>♭4(A♭Maj/D♭Maj)</item>
+        <item>♭5(D♭Maj/G♭Maj)</item>
+        <item>♭6(G♭Maj/B Maj)</item>
+        <item>♭7(C♭Maj/E Maj)</item>
+    </string-array>
+
+    <string-array name="key_signatures_minor_f">
+        <item>♯0(a Min/d Min)</item>
+        <item>♯1(e Min/a Min)</item>
+        <item>♯2(b Min/e Min)</item>
+        <item>♯3(f♯Min/b Min)</item>
+        <item>♯4(c♯Min/f♯Min)</item>
+        <item>♯5(g♯Min/c♯Min)</item>
+        <item>♯6(d♯Min/g♯Min)</item>
+        <item>♯7(a♯Min/d♯Min)</item>
+        <item>♭1(d Min/g Min)</item>
+        <item>♭2(g Min/c Min)</item>
+        <item>♭3(c Min/f Min)</item>
+        <item>♭4(f Min/b♭Min)</item>
+        <item>♭5(b♭Min/e♭Min)</item>
+        <item>♭6(e♭Min/a♭Min)</item>
+        <item>♭7(a♭Min/d♭Min)</item>
+    </string-array>
+
+    <!-- A管（クラリネットなど） -->
+    <string-array name="key_signatures_major_a">
+        <item>♯0(C Maj/A Maj)</item>
+        <item>♯1(G Maj/E Maj)</item>
+        <item>♯2(D Maj/B Maj)</item>
+        <item>♯3(A Maj/F♯Maj)</item>
+        <item>♯4(E Maj/C♯Maj)</item>
+        <item>♯5(B Maj/G♯Maj)</item>
+        <item>♯6(F♯Maj/D♯Maj)</item>
+        <item>♯7(C♯Maj/A♯Maj)</item>
+        <item>♭1(F Maj/D Maj)</item>
+        <item>♭2(B♭Maj/G Maj)</item>
+        <item>♭3(E♭Maj/B♭Maj)</item>
+        <item>♭4(A♭Maj/E♭Maj)</item>
+        <item>♭5(D♭Maj/A♭Maj)</item>
+        <item>♭6(G♭Maj/D♭Maj)</item>
+        <item>♭7(C♭Maj/G♭Maj)</item>
+    </string-array>
+
+    <string-array name="key_signatures_minor_a">
+        <item>♯0(a Min/f♯Min)</item>
+        <item>♯1(e Min/c♯Min)</item>
+        <item>♯2(b Min/g♯Min)</item>
+        <item>♯3(f♯Min/d♯Min)</item>
+        <item>♯4(c♯Min/a♯Min)</item>
+        <item>♯5(g♯Min/f Min)</item>
+        <item>♯6(d♯Min/c Min)</item>
+        <item>♯7(a♯Min/g Min)</item>
+        <item>♭1(d Min/b Min)</item>
+        <item>♭2(g Min/e Min)</item>
+        <item>♭3(c Min/a Min)</item>
+        <item>♭4(f Min/d Min)</item>
+        <item>♭5(b♭Min/g Min)</item>
+        <item>♭6(e♭Min/c Min)</item>
+        <item>♭7(a♭Min/f Min)</item>
+    </string-array>
+
+    <string-array name="instruments">
+        <item>C管</item>
+        <item>B♭管</item>
+        <item>E♭管</item>
+        <item>F管</item>
+        <item>A管</item>
+    </string-array>
+
+    <string-array name="base_pitches">
+        <item>438 Hz</item>
+        <item>439 Hz</item>
+        <item>440 Hz</item>
+        <item>441 Hz</item>
+        <item>442 Hz</item>
+        <item>443 Hz</item>
+        <item>444 Hz</item>
+        <item>445 Hz</item>
+    </string-array>
+
+    <string name="base_pitch_prompt">基準ピッチを選択</string>
+
+</resources>

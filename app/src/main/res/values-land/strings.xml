@@ -1,0 +1,7 @@
+<resources>
+    <string-array name="clef_options">
+        <item>ト音記号</item>
+        <item>ハ音記号</item>
+        <item>ヘ音記号</item>
+    </string-array>
+</resources>
