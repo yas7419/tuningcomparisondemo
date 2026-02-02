@@ -87,11 +87,6 @@
                 android:layout_height="48dp"
                 android:text="純正律 / 平均律" />
 
-            <Switch
-                android:id="@+id/switchAlignmentMode"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="記譜 / 主音" />
 
         </LinearLayout>
 
