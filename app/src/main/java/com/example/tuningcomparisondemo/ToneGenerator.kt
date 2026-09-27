@@ -3,13 +3,12 @@ package com.example.tuningcomparisondemo
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
-import android.util.Log
 import android.widget.Button
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.math.PI
 import kotlin.math.sin
-import kotlin.math.abs
-import kotlin.math.max
+import kotlin.math.sqrt
+import kotlin.math.tanh
 
 class ToneGenerator(
     private val sampleRate: Int = 44100,
@@ -61,115 +60,174 @@ class ToneGenerator(
 
         Thread {
             val bufferSize = sampleRate / 50
-            val mixBuffer = ShortArray(bufferSize)
-            var silenceCounter = 0 // サイレンス継続時間カウンタ
+            val floatMixBuffer = FloatArray(bufferSize)
+            val pcmBuffer = ShortArray(bufferSize)
+            var silenceCounter = 0
 
             while (isRunning) {
-                // 終了条件緩和：0.2秒以上完全サイレンスなら停止
-                if (activeFreqs.isEmpty() && fadeOutMap.isEmpty() && fadeInMap.isEmpty() && resumeQueue.isEmpty()) {
-                    silenceCounter += bufferSize
-                    if (silenceCounter >= sampleRate / 5) { // 0.2秒
-                        val silenceBuffer = ShortArray(bufferSize) { 0 }
-                        repeat(3) { audioTrack?.write(silenceBuffer, 0, silenceBuffer.size) }
-                        release()
-                        break
+                val currentActiveFreqs: Set<Double>
+                val currentFadeOut: Map<Double, Int>
+                val currentFadeIn: Map<Double, Int>
+                val currentPhases: Map<Double, Double>
+                val currentResumeQueue: Set<Int>
+                var shouldStop = false
+
+                synchronized(this) {
+                    if (activeFreqs.isEmpty() && fadeOutMap.isEmpty() && fadeInMap.isEmpty() && resumeQueue.isEmpty()) {
+                        silenceCounter += bufferSize
+                        if (silenceCounter >= sampleRate / 5) {
+                            shouldStop = true
+                        }
+                    } else {
+                        silenceCounter = 0
                     }
-                } else {
-                    silenceCounter = 0
+
+                    currentActiveFreqs = activeFreqs.toSet()
+                    currentFadeOut = fadeOutMap.toMap()
+                    currentFadeIn = fadeInMap.toMap()
+                    currentPhases = phaseMap.toMap()
+                    currentResumeQueue = resumeQueue.toSet()
                 }
 
-                for (i in mixBuffer.indices) mixBuffer[i] = 0
+                if (shouldStop) {
+                    val silenceBuffer = ShortArray(bufferSize) { 0 }
+                    repeat(3) { audioTrack?.write(silenceBuffer, 0, silenceBuffer.size) }
+                    release()
+                    break
+                }
 
-                for (freq in activeFreqs) {
-                    val phaseStart = phaseMap[freq] ?: 0.0
+                for (i in floatMixBuffer.indices) {
+                    floatMixBuffer[i] = 0f
+                }
+
+                val numActive = currentActiveFreqs.size
+                val gainScale = if (numActive > 0) 0.3f / sqrt(numActive.toFloat()) else 0.3f
+
+                val updatedPhases = mutableMapOf<Double, Double>()
+                val finishedFadeOut = mutableSetOf<Double>()
+                val finishedFadeIn = mutableSetOf<Double>()
+                val updatedFadeOut = currentFadeOut.toMutableMap()
+                val updatedFadeIn = currentFadeIn.toMutableMap()
+
+                for (freq in currentActiveFreqs) {
+                    val phaseStart = currentPhases[freq] ?: 0.0
                     val phaseInc = 2 * PI * freq / sampleRate
                     var phase = phaseStart
 
-                    val fadeOutRemaining = fadeOutMap[freq] ?: -1
+                    val fadeOutRemaining = currentFadeOut[freq] ?: -1
                     val fadeOutStep = if (fadeOutRemaining > 0) 1.0 / fadeSamples else 0.0
                     var fadeOutFactor = if (fadeOutRemaining > 0) fadeOutRemaining.toDouble() / fadeSamples else 1.0
 
-                    val fadeInRemaining = fadeInMap[freq] ?: -1
+                    val fadeInRemaining = currentFadeIn[freq] ?: -1
                     val fadeInStep = if (fadeInRemaining > 0) 1.0 / fadeSamples else 0.0
                     var fadeInFactor = if (fadeInRemaining > 0) (fadeSamples - fadeInRemaining).toDouble() / fadeSamples else 1.0
 
-                    
-                    for (i in mixBuffer.indices) {
+                    for (i in floatMixBuffer.indices) {
                         val factor = fadeOutFactor * fadeInFactor
-                        val sample = sin(phase) * Short.MAX_VALUE * 0.3 * factor
-                        val mixed = mixBuffer[i] + sample.toInt()
-                        mixBuffer[i] = mixed.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+                        val sample = (sin(phase) * factor).toFloat() * gainScale
+                        floatMixBuffer[i] = floatMixBuffer[i] + sample
                         phase += phaseInc
 
                         if (fadeOutRemaining > 0) fadeOutFactor -= fadeOutStep
                         if (fadeInRemaining > 0) fadeInFactor += fadeInStep
                     }
 
-                    phaseMap[freq] = phase
+                    updatedPhases[freq] = phase
 
-                    // フェードアウト終了判定
                     if (fadeOutRemaining > 0) {
                         val newRemaining = fadeOutRemaining - bufferSize
                         if (newRemaining <= 0) {
-                            fadeOutMap.remove(freq)
-                            activeFreqs.remove(freq)
-                            phaseMap.remove(freq)
-
-                            val noteIndexList = resumeQueue.toList()
-                            for (noteIndex in noteIndexList) {
-                                resumeQueue.remove(noteIndex)
-                                val newFreq = noteButtonsProvider()[noteIndex]?.tag as? Double ?: continue
-                                fadeOutMap.remove(newFreq)
-                                phaseMap[newFreq] = 0.0
-                                fadeInMap[newFreq] = fadeSamples
-                                activeFreqs.add(newFreq)
-                                noteIndexToFreq[noteIndex] = newFreq
-                                onResumeCallback?.invoke(noteIndex)
-                            }
+                            finishedFadeOut.add(freq)
+                            updatedFadeOut.remove(freq)
                         } else {
-                            fadeOutMap[freq] = newRemaining
+                            updatedFadeOut[freq] = newRemaining
                         }
                     }
 
-                    // フェードイン終了判定
                     if (fadeInRemaining > 0) {
                         val newRemaining = fadeInRemaining - bufferSize
                         if (newRemaining <= 0) {
-                            fadeInMap.remove(freq)
+                            finishedFadeIn.add(freq)
+                            updatedFadeIn.remove(freq)
                         } else {
-                            fadeInMap[freq] = newRemaining
+                            updatedFadeIn[freq] = newRemaining
                         }
                     }
                 }
 
-                audioTrack?.write(mixBuffer, 0, mixBuffer.size)
+                for (i in floatMixBuffer.indices) {
+                    val limited = tanh(floatMixBuffer[i].toDouble()).toFloat()
+                    pcmBuffer[i] = (limited * Short.MAX_VALUE).toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+                }
+
+                synchronized(this) {
+                    for ((freq, phase) in updatedPhases) {
+                        phaseMap[freq] = phase
+                    }
+                    for (freq in finishedFadeOut) {
+                        fadeOutMap.remove(freq)
+                        activeFreqs.remove(freq)
+                        phaseMap.remove(freq)
+                    }
+                    for ((freq, rem) in updatedFadeOut) {
+                        if (rem > 0) fadeOutMap[freq] = rem
+                    }
+                    for (freq in finishedFadeIn) {
+                        fadeInMap.remove(freq)
+                    }
+                    for ((freq, rem) in updatedFadeIn) {
+                        if (rem > 0) fadeInMap[freq] = rem
+                    }
+
+                    if (finishedFadeOut.isNotEmpty()) {
+                        val noteIndexList = currentResumeQueue.toList()
+                        for (noteIndex in noteIndexList) {
+                            resumeQueue.remove(noteIndex)
+                            val newFreq = noteButtonsProvider()[noteIndex]?.tag as? Double ?: continue
+                            fadeOutMap.remove(newFreq)
+                            phaseMap[newFreq] = 0.0
+                            fadeInMap[newFreq] = fadeSamples
+                            activeFreqs.add(newFreq)
+                            noteIndexToFreq[noteIndex] = newFreq
+                            onResumeCallback?.invoke(noteIndex)
+                        }
+                    }
+                }
+
+                audioTrack?.write(pcmBuffer, 0, pcmBuffer.size)
             }
         }.start()
     }
 
     fun playTone(freq: Double, noteIndex: Int? = null) {
-        if (audioTrack == null) start()
-        fadeOutMap.remove(freq)
-        phaseMap[freq] = 0.0
-        fadeInMap[freq] = fadeSamples
-        activeFreqs.add(freq)
-        if (noteIndex != null) {
-            noteIndexToFreq[noteIndex] = freq
+        synchronized(this) {
+            if (audioTrack == null) start()
+            fadeOutMap.remove(freq)
+            phaseMap[freq] = 0.0
+            fadeInMap[freq] = fadeSamples
+            activeFreqs.add(freq)
+            if (noteIndex != null) {
+                noteIndexToFreq[noteIndex] = freq
+            }
         }
     }
 
     fun stopTone(noteIndex: Int, resumeAfter: Boolean = false) {
-        val currentFreq = noteIndexToFreq[noteIndex] ?: return
-        fadeOutMap[currentFreq] = fadeSamples
-        if (resumeAfter) {
-            resumeQueue.add(noteIndex)
+        synchronized(this) {
+            val currentFreq = noteIndexToFreq[noteIndex] ?: return
+            fadeOutMap[currentFreq] = fadeSamples
+            if (resumeAfter) {
+                resumeQueue.add(noteIndex)
+            }
         }
     }
 
     fun stopAll() {
-        if (activeFreqs.isEmpty()) return
-        for (freq in activeFreqs) {
-            fadeOutMap[freq] = fadeSamples
+        synchronized(this) {
+            if (activeFreqs.isEmpty()) return
+            for (freq in activeFreqs) {
+                fadeOutMap[freq] = fadeSamples
+            }
         }
     }
 
@@ -183,6 +241,4 @@ class ToneGenerator(
     fun setOriginalFreqMap(map: Map<Int, Double>) {
         originalFreqMap = map
     }
-
-    fun getFadeDurationMs(): Int = fadeDurationMs
 }
