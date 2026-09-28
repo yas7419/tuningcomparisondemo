@@ -3,6 +3,7 @@ package com.example.tuningcomparisondemo
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     // シャープとフラットの両方を併記した音名を取得（Minorの場合は小文字に変換）
     private fun getNoteDisplayName(index: Int, isMinor: Boolean): String {
-        val idx = (index % 12 + 12) % 12
+        val idx = ((index % 12) + 12) % 12
         val sharp = NoteNames.sharpNames[idx]
         val flat = NoteNames.flatNames[idx]
 
@@ -69,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         val spinnerRoot = findViewById<Spinner>(R.id.spinnerChordRoot)
         val spinnerInst = findViewById<Spinner>(R.id.spinnerInstrument)
         spinnerInst.setSelection(1) // B♭管 はインデックス1
-        switchChordType = findViewById<Switch>(R.id.switchChordType)
+        switchChordType = findViewById(R.id.switchChordType)
         val switchTuning = findViewById<Switch>(R.id.switchTuningMode)
         val spinnerPitch = findViewById<Spinner>(R.id.spinnerBasePitch)
         spinnerPitch.setSelection(4) // 442Hz
@@ -86,7 +87,7 @@ class MainActivity : AppCompatActivity() {
                 calculator.setTuningMode(if (switchTuning.isChecked) TuningMode.EQUAL else TuningMode.JUST)
                 calculator.setChordRoot(chordRoot)
 
-                updateNoteButtons()
+                setupNoteButtons(skipStop = true)
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
@@ -104,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                     else -> InstrumentKey.C
                 }
                 calculator.setInstrumentKey(instKey)
-                updateNoteButtons()
+                setupNoteButtons(skipStop = true)
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
@@ -115,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 val pitchText = parent.getItemAtPosition(position).toString()
                 val pitchHz = pitchText.replace(" Hz", "").toDoubleOrNull() ?: 440.0
                 calculator.setBasePitch(pitchHz)
-                updateNoteButtons()
+                setupNoteButtons(skipStop = true)
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
@@ -129,7 +130,7 @@ class MainActivity : AppCompatActivity() {
                     playingNotes[noteIndex] = false
                 }
                 calculator.setChordType(if (isChecked) ChordType.MINOR else ChordType.MAJOR)
-                updateNoteButtons()
+                setupNoteButtons(skipStop = true)
             }
         }
 
@@ -146,7 +147,7 @@ class MainActivity : AppCompatActivity() {
             for ((noteIndex, _) in playingNotes) {
                 playingNotes[noteIndex] = false
             }
-            for ((noteIndex, button) in noteButtons) {
+            for ((noteIndex, _) in noteButtons) {
                 updateButtonStyling(noteIndex, false)
             }
         }
@@ -188,31 +189,89 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 12音ボタンの初期生成 (縦：縦並び、横：鍵盤風2段（上段=#♭、下段=ナチュラル）)
+    // 12音ボタンの初期生成 (縦：12行の順次配置[Rootが下、11が上]、ボタン56dp、空きスペースは半高28dp / 横：変更なし)
     private fun setupNoteButtons(skipStop: Boolean = false) {
         if (isPortrait()) {
             val container = findViewById<LinearLayout>(R.id.noteButtonContainer)
             container?.removeAllViews()
             noteButtons.clear()
 
-            val noteIndices = (0..11).toList().reversed()
+            val fullHeightPx = (56 * resources.displayMetrics.density).toInt()
+            val halfHeightPx = (28 * resources.displayMetrics.density).toInt()
 
-            for (noteIndex in noteIndices) {
-                val button = Button(this)
-                button.setOnClickListener {
-                    toggleNotePlayback(noteIndex)
+            // 根音(0)が一番下、上に向かって11へ (11 downTo 0)
+            for (noteIndex in 11 downTo 0) {
+                val concertChromatic = calculator.getConcertChromatic(noteIndex)
+                // 実音が # / ♭ (1, 3, 6, 8, 10) の場合は左側（黒鍵位置）、それ以外は右側（白鍵位置）
+                val isSharpFlat = concertChromatic in listOf(1, 3, 6, 8, 10)
+
+                val rowLayout = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(0, 2, 0, 2)
+                    }
+                    gravity = Gravity.CENTER_VERTICAL
                 }
 
-                val layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                layoutParams.setMargins(0, 2, 0, 2)
-                button.layoutParams = layoutParams
-                button.textSize = 12f
-                button.setPadding(8, 2, 8, 2)
-                container?.addView(button)
-                noteButtons[noteIndex] = button
+                val leftSlot = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                }
+                val rightSlot = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                }
+
+                if (isSharpFlat) {
+                    val button = Button(this).apply {
+                        setOnClickListener { toggleNotePlayback(noteIndex) }
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            fullHeightPx
+                        )
+                        textSize = 10f
+                        setPadding(2, 2, 2, 2)
+                    }
+                    leftSlot.addView(button)
+                    noteButtons[noteIndex] = button
+
+                    val emptyView = View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            halfHeightPx
+                        )
+                    }
+                    rightSlot.addView(emptyView)
+                } else {
+                    val emptyView = View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            halfHeightPx
+                        )
+                    }
+                    leftSlot.addView(emptyView)
+
+                    val button = Button(this).apply {
+                        setOnClickListener { toggleNotePlayback(noteIndex) }
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            fullHeightPx
+                        )
+                        textSize = 10f
+                        setPadding(2, 2, 2, 2)
+                    }
+                    rightSlot.addView(button)
+                    noteButtons[noteIndex] = button
+                }
+
+                rowLayout.addView(leftSlot)
+                rowLayout.addView(rightSlot)
+                container?.addView(rowLayout)
             }
         } else {
             val upperContainer = findViewById<LinearLayout>(R.id.upperRowContainer)
@@ -221,56 +280,57 @@ class MainActivity : AppCompatActivity() {
             lowerContainer?.removeAllViews()
             noteButtons.clear()
 
-            // 自然音（白鍵）: C(0), D(2), E(4), F(5), G(7), A(9), B(11)
-            val naturalIndices = (0..11).filter { noteIndex ->
-                val cc = calculator.getConcertChromatic(noteIndex)
-                cc in listOf(0, 2, 4, 5, 7, 9, 11)
-            }.sortedBy { calculator.getConcertChromatic(it) }
+            // 根音(0)が一番左、右に向かって11へ (0..11)
+            for (noteIndex in 0..11) {
+                val concertChromatic = calculator.getConcertChromatic(noteIndex)
+                val isBlackKey = concertChromatic in listOf(1, 3, 6, 8, 10)
 
-            // 変化音（黒鍵/#♭）: C#/Db(1), D#/Eb(3), F#/Gb(6), G#/Ab(8), A#/Bb(10)
-            val accidentalIndices = (0..11).filter { noteIndex ->
-                val cc = calculator.getConcertChromatic(noteIndex)
-                cc in listOf(1, 3, 6, 8, 10)
-            }.sortedBy { calculator.getConcertChromatic(it) }
+                val upperWeight = if (isBlackKey) 1f else 0.5f
+                val lowerWeight = if (isBlackKey) 0.5f else 1f
 
-            // 上段：# / ♭ (黒鍵)
-            for (noteIndex in accidentalIndices) {
-                val button = Button(this)
-                button.setOnClickListener {
-                    toggleNotePlayback(noteIndex)
+                val upperSlot = LinearLayout(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, upperWeight).apply {
+                        setMargins(1, 0, 1, 0)
+                    }
+                    gravity = Gravity.CENTER
+                }
+                val lowerSlot = LinearLayout(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, lowerWeight).apply {
+                        setMargins(1, 0, 1, 0)
+                    }
+                    gravity = Gravity.CENTER
                 }
 
-                val layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    1f
-                )
-                layoutParams.setMargins(2, 2, 2, 2)
-                button.layoutParams = layoutParams
-                button.textSize = 10f
-                button.setPadding(2, 2, 2, 2)
-                upperContainer?.addView(button)
-                noteButtons[noteIndex] = button
-            }
-
-            // 下段：ナチュラル (白鍵)
-            for (noteIndex in naturalIndices) {
-                val button = Button(this)
-                button.setOnClickListener {
-                    toggleNotePlayback(noteIndex)
+                if (isBlackKey) {
+                    val button = Button(this).apply {
+                        setOnClickListener { toggleNotePlayback(noteIndex) }
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT
+                        )
+                        textSize = 9f
+                        setPadding(1, 1, 1, 1)
+                    }
+                    upperSlot.addView(button)
+                    noteButtons[noteIndex] = button
                 }
 
-                val layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    1f
-                )
-                layoutParams.setMargins(2, 2, 2, 2)
-                button.layoutParams = layoutParams
-                button.textSize = 10f
-                button.setPadding(2, 2, 2, 2)
-                lowerContainer?.addView(button)
-                noteButtons[noteIndex] = button
+                if (!isBlackKey) {
+                    val button = Button(this).apply {
+                        setOnClickListener { toggleNotePlayback(noteIndex) }
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT
+                        )
+                        textSize = 9f
+                        setPadding(1, 1, 1, 1)
+                    }
+                    lowerSlot.addView(button)
+                    noteButtons[noteIndex] = button
+                }
+
+                upperContainer?.addView(upperSlot)
+                lowerContainer?.addView(lowerSlot)
             }
         }
 
@@ -309,9 +369,8 @@ class MainActivity : AppCompatActivity() {
             val intervalLabel = getIntervalLabel(noteIndex)
             val prefix = if (noteIndex == 0) "★基準 " else ""
 
-            // 横向きの場合はスペースの関係上、テキストをコンパクトに調整
             val buttonText = if (isPortrait()) {
-                "$prefix$nameLabel [$intervalLabel] | ${"%.2f".format(freq)} Hz | ${"%.1f".format(centDiff)} cent"
+                "$prefix$nameLabel [$intervalLabel]\n${"%.2f".format(freq)} Hz | ${"%.1f".format(centDiff)} cent"
             } else {
                 "$prefix$nameLabel\n[$intervalLabel]\n${"%.1f".format(centDiff)}c"
             }
