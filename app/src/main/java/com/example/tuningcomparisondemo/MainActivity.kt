@@ -1,5 +1,6 @@
 package com.example.tuningcomparisondemo
 
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -28,6 +29,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonOctaveDown: Button
 
     var uiUpdateEnabled = true
+
+    private fun isPortrait(): Boolean {
+        return resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+    }
 
     // シャープとフラットの両方を併記した音名を取得（Minorの場合は小文字に変換）
     private fun getNoteDisplayName(index: Int, isMinor: Boolean): String {
@@ -183,30 +188,90 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 12音ボタンの初期生成 (0〜11半音順、コンパクト化)
+    // 12音ボタンの初期生成 (縦：縦並び、横：鍵盤風2段（上段=#♭、下段=ナチュラル）)
     private fun setupNoteButtons(skipStop: Boolean = false) {
-        val container = findViewById<LinearLayout>(R.id.noteButtonContainer)
-        container.removeAllViews()
-        noteButtons.clear()
+        if (isPortrait()) {
+            val container = findViewById<LinearLayout>(R.id.noteButtonContainer)
+            container?.removeAllViews()
+            noteButtons.clear()
 
-        val noteIndices = (0..11).toList().reversed()
+            val noteIndices = (0..11).toList().reversed()
 
-        for (noteIndex in noteIndices) {
-            val button = Button(this)
-            button.setOnClickListener {
-                toggleNotePlayback(noteIndex)
+            for (noteIndex in noteIndices) {
+                val button = Button(this)
+                button.setOnClickListener {
+                    toggleNotePlayback(noteIndex)
+                }
+
+                val layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                layoutParams.setMargins(0, 2, 0, 2)
+                button.layoutParams = layoutParams
+                button.textSize = 12f
+                button.setPadding(8, 2, 8, 2)
+                container?.addView(button)
+                noteButtons[noteIndex] = button
+            }
+        } else {
+            val upperContainer = findViewById<LinearLayout>(R.id.upperRowContainer)
+            val lowerContainer = findViewById<LinearLayout>(R.id.lowerRowContainer)
+            upperContainer?.removeAllViews()
+            lowerContainer?.removeAllViews()
+            noteButtons.clear()
+
+            // 自然音（白鍵）: C(0), D(2), E(4), F(5), G(7), A(9), B(11)
+            val naturalIndices = (0..11).filter { noteIndex ->
+                val cc = calculator.getConcertChromatic(noteIndex)
+                cc in listOf(0, 2, 4, 5, 7, 9, 11)
+            }.sortedBy { calculator.getConcertChromatic(it) }
+
+            // 変化音（黒鍵/#♭）: C#/Db(1), D#/Eb(3), F#/Gb(6), G#/Ab(8), A#/Bb(10)
+            val accidentalIndices = (0..11).filter { noteIndex ->
+                val cc = calculator.getConcertChromatic(noteIndex)
+                cc in listOf(1, 3, 6, 8, 10)
+            }.sortedBy { calculator.getConcertChromatic(it) }
+
+            // 上段：# / ♭ (黒鍵)
+            for (noteIndex in accidentalIndices) {
+                val button = Button(this)
+                button.setOnClickListener {
+                    toggleNotePlayback(noteIndex)
+                }
+
+                val layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1f
+                )
+                layoutParams.setMargins(2, 2, 2, 2)
+                button.layoutParams = layoutParams
+                button.textSize = 10f
+                button.setPadding(2, 2, 2, 2)
+                upperContainer?.addView(button)
+                noteButtons[noteIndex] = button
             }
 
-            val layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            layoutParams.setMargins(0, 2, 0, 2)
-            button.layoutParams = layoutParams
-            button.textSize = 12f
-            button.setPadding(8, 2, 8, 2)
-            container.addView(button)
-            noteButtons[noteIndex] = button
+            // 下段：ナチュラル (白鍵)
+            for (noteIndex in naturalIndices) {
+                val button = Button(this)
+                button.setOnClickListener {
+                    toggleNotePlayback(noteIndex)
+                }
+
+                val layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1f
+                )
+                layoutParams.setMargins(2, 2, 2, 2)
+                button.layoutParams = layoutParams
+                button.textSize = 10f
+                button.setPadding(2, 2, 2, 2)
+                lowerContainer?.addView(button)
+                noteButtons[noteIndex] = button
+            }
         }
 
         updateNoteButtons(skipStop)
@@ -231,7 +296,6 @@ class MainActivity : AppCompatActivity() {
         for (noteIndex in 0..11) {
             val button = noteButtons[noteIndex] ?: continue
 
-            // 記譜音名 と 実音名(コンサートピッチ) の計算（シャープ/フラット併記 ＆ マイナー時は小文字）
             val writtenChromatic = (chordRoot + noteIndex + 120) % 12
             val concertChromatic = calculator.getConcertChromatic(noteIndex)
             val writtenName = getNoteDisplayName(writtenChromatic, isMinor)
@@ -245,7 +309,14 @@ class MainActivity : AppCompatActivity() {
             val intervalLabel = getIntervalLabel(noteIndex)
             val prefix = if (noteIndex == 0) "★基準 " else ""
 
-            button.text = "$prefix$nameLabel [$intervalLabel] | ${"%.2f".format(freq)} Hz | ${"%.1f".format(centDiff)} cent"
+            // 横向きの場合はスペースの関係上、テキストをコンパクトに調整
+            val buttonText = if (isPortrait()) {
+                "$prefix$nameLabel [$intervalLabel] | ${"%.2f".format(freq)} Hz | ${"%.1f".format(centDiff)} cent"
+            } else {
+                "$prefix$nameLabel\n[$intervalLabel]\n${"%.1f".format(centDiff)}c"
+            }
+
+            button.text = buttonText
             button.tag = freq
 
             val isPlaying = playingNotes[noteIndex] ?: false

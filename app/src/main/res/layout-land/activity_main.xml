@@ -1,212 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
     android:padding="8dp">
 
-    <!-- 上段：コントロール群（高さ1/3） -->
+    <LinearLayout
+        android:id="@+id/instrumentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="2dp">
+
+    <Spinner
+        android:id="@+id/spinnerInstrument"
+        android:layout_width="0dp"
+        android:layout_height="36dp"
+        android:layout_weight="1"
+        android:entries="@array/instruments" />
+
+    <Spinner
+        android:id="@+id/spinnerBasePitch"
+        android:layout_width="0dp"
+        android:layout_height="36dp"
+        android:layout_weight="1"
+        android:entries="@array/base_pitches" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/keyModeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="2dp">
+
+        <Spinner
+            android:id="@+id/spinnerChordRoot"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:entries="@array/chord_roots" />
+
+        <Switch
+            android:id="@+id/switchChordType"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Major / Minor"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/modeControlLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp">
+        <Switch
+            android:id="@+id/switchTuningMode"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="純正律 / 平均律" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="選択内容と計算結果がここに表示されます" />
+
+    <!-- 中段：鍵盤風12音ボタン配置（横向き：上段＝#・♭、下段＝ナチュラル） -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="4dp">
+        android:orientation="vertical"
+        android:background="#000000"
+        android:gravity="center"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:padding="2dp">
 
         <LinearLayout
-            android:id="@+id/modeLayout1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/upperRowContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_vertical"
-            android:padding="4dp">
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="2dp" />
 
-            <LinearLayout
-                android:id="@+id/instrumentLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="4dp">
-
-                <Spinner
-                    android:id="@+id/spinnerInstrument"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:entries="@array/instruments" />
-
-                <Spinner
-                    android:id="@+id/spinnerBasePitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:entries="@array/base_pitches" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/keyModeLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="4dp">
-
-                <Spinner
-                    android:id="@+id/spinnerKeySignature"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="8dp"
-                    android:entries="@array/key_signatures" />
-
-                <Switch
-                    android:id="@+id/switchScaleMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:text="長調 / 短調" />
-
-            </LinearLayout>
-        </LinearLayout>
         <LinearLayout
-            android:id="@+id/modeLayout2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/lowerRowContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_vertical"
-            android:padding="4dp">
-
-            <Switch
-                android:id="@+id/switchTuningMode"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="純正律 / 平均律" />
-
-            <Switch
-                android:id="@+id/switchAlignmentMode"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="記譜 / 主音" />
-
-        </LinearLayout>
-
-        <!-- 横向き専用：音部記号選択スイッチ -->
-        <Spinner
-            android:id="@+id/spinnerClef"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:entries="@array/clef_options" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="2dp" />
     </LinearLayout>
 
-    <!-- 中段：五線譜表示 -->
-    <FrameLayout
-        android:id="@+id/staffContainer"
+    <LinearLayout
+        android:id="@+id/octaveControlLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#FFFFFF">
-        <!-- CustomViewで五線譜＋音符を描画 -->
-    </FrameLayout>
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="2dp">
 
-    <!-- 下段：情報表示＋操作ボタン（高さ1/3） -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="4dp">
-
-        <!-- 左側：項目名＋値表示 -->
-        <TableLayout
-            android:id="@+id/infoTable"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:stretchColumns="1,2,3,4,5,6,7">
-
-            <!-- 1行目：Note -->
-            <TableRow>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Note"
-                    android:textStyle="bold"
-                    android:paddingEnd="8dp" />
-                <TextView android:id="@+id/textNote_0" android:text="-" />
-                <TextView android:id="@+id/textNote_1" android:text="-" />
-                <TextView android:id="@+id/textNote_2" android:text="-" />
-                <TextView android:id="@+id/textNote_3" android:text="-" />
-                <TextView android:id="@+id/textNote_4" android:text="-" />
-                <TextView android:id="@+id/textNote_5" android:text="-" />
-                <TextView android:id="@+id/textNote_6" android:text="-" />
-            </TableRow>
-
-            <!-- 2行目：Cent Diff -->
-            <TableRow>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cent Diff"
-                    android:textStyle="bold"
-                    android:paddingEnd="8dp" />
-                <TextView android:id="@+id/textCent_0" android:text="0" />
-                <TextView android:id="@+id/textCent_1" android:text="0" />
-                <TextView android:id="@+id/textCent_2" android:text="0" />
-                <TextView android:id="@+id/textCent_3" android:text="0" />
-                <TextView android:id="@+id/textCent_4" android:text="0" />
-                <TextView android:id="@+id/textCent_5" android:text="0" />
-                <TextView android:id="@+id/textCent_6" android:text="0" />
-            </TableRow>
-
-            <!-- 3行目：Freq -->
-            <TableRow>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Freq"
-                    android:textStyle="bold"
-                    android:paddingEnd="8dp" />
-                <TextView android:id="@+id/textFreq_0" android:text="-" />
-                <TextView android:id="@+id/textFreq_1" android:text="-" />
-                <TextView android:id="@+id/textFreq_2" android:text="-" />
-                <TextView android:id="@+id/textFreq_3" android:text="-" />
-                <TextView android:id="@+id/textFreq_4" android:text="-" />
-                <TextView android:id="@+id/textFreq_5" android:text="-" />
-                <TextView android:id="@+id/textFreq_6" android:text="-" />
-            </TableRow>
-        </TableLayout>
-
-        <!-- 右下：オクターブ上下＋停止 -->
-        <LinearLayout
+        <Button
+            android:id="@+id/buttonOctaveDown"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:orientation="horizontal">
+            android:text="オクターブ下げ" />
 
-            <Button
-                android:id="@+id/buttonOctaveDown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="オクターブ下げ" />
+        <Button
+            android:id="@+id/buttonOctaveUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="オクターブ上げ"
+            android:layout_marginStart="16dp" />
 
-            <Button
-                android:id="@+id/buttonOctaveUp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="オクターブ上げ" />
+    </LinearLayout>
 
-            <Button
-                android:id="@+id/buttonStop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="停止" />
-        </LinearLayout>
-    </RelativeLayout>
+    <Button
+        android:id="@+id/buttonStop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="停止" />
+
     <Button
         android:id="@+id/debugToggleUiUpdatesButton"
         android:layout_width="match_parent"
@@ -215,3 +149,5 @@
         android:text="UI更新/更新停止" />
 
 </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
