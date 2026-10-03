@@ -142,7 +142,8 @@ class MainActivity : AppCompatActivity() {
         buttonOctaveUp.setOnClickListener {
             if (currentOctave < maxOctave) {
                 currentOctave++
-                stopAllPlayback()
+                //stopAllPlayback()
+                changeOctave(1 )
             }
         }
 
@@ -150,7 +151,8 @@ class MainActivity : AppCompatActivity() {
         buttonOctaveDown.setOnClickListener {
             if (currentOctave > minOctave) {
                 currentOctave--
-                stopAllPlayback()
+                //stopAllPlayback()
+                changeOctave(-1)
             }
         }
 
@@ -286,4 +288,33 @@ class MainActivity : AppCompatActivity() {
 
         updateNoteButtons()
     }
+
+    private fun changeOctave(delta: Int) {
+        val newOctave = currentOctave + delta
+        if (newOctave in minOctave..maxOctave) {
+            // ★ここで currentOctave を新しい値（+1 や -1 された値）に更新しています！
+            currentOctave = newOctave
+
+            // 現在再生中の音を取得
+            val activeNotes = playingNotes.filterValues { it }.keys.toList()
+
+            if (activeNotes.isNotEmpty()) {
+                // 1. 旧周波数の音を停止
+                for (noteIndex in activeNotes) {
+                    toneGenerator.stopTone(noteIndex)
+                }
+
+                // 2. 更新された currentOctave の周波数で再発音
+                for (noteIndex in activeNotes) {
+                    val newFreq = calculator.getFrequency(noteIndex, currentOctave)
+                    toneGenerator.playTone(newFreq, noteIndex)
+                    playingNotes[noteIndex] = true
+                }
+            }
+
+            // UIとボタンの有効/無効状態を更新
+            updateNoteButtons()
+        }
+    }
+
 }
