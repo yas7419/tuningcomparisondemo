@@ -81,36 +81,14 @@
         android:visibility="gone"
         android:text="選択内容と計算結果がここに表示されます" />
 
-    <!-- 中段：鍵盤風12音ボタン配置（横向き：上段＝#・♭、下段＝ナチュラル） -->
-    <LinearLayout
+    <com.example.tuningcomparisondemo.PianoKeyboardView
+        android:id="@+id/pianoKeyboardView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
         android:background="#000000"
-        android:gravity="center"
         android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp"
-        android:padding="2dp">
-
-        <LinearLayout
-            android:id="@+id/upperRowContainer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="2dp" />
-
-        <LinearLayout
-            android:id="@+id/lowerRowContainer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="2dp" />
-    </LinearLayout>
+        android:layout_marginBottom="2dp" />
 
     <LinearLayout
         android:id="@+id/octaveControlLayout"

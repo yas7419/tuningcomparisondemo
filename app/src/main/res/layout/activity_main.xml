@@ -83,22 +83,14 @@
         android:textSize="14sp"
         android:text="選択内容と計算結果がここに表示されます" />
 
-    <ScrollView
+    <com.example.tuningcomparisondemo.PianoKeyboardView
+        android:id="@+id/pianoKeyboardView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:background="#000000"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp">
-
-        <LinearLayout
-            android:id="@+id/noteButtonContainer"
-            android:background="#000000"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp" />
-    </ScrollView>
+        android:layout_marginBottom="4dp" />
 
     <LinearLayout
         android:id="@+id/octaveControlLayout"

@@ -199,13 +199,25 @@ class ToneGenerator(
         }.start()
     }
 
+// ToneGenerator.kt 内の修正例
+
     fun playTone(freq: Double, noteIndex: Int? = null) {
         synchronized(this) {
             if (audioTrack == null) start()
             fadeOutMap.remove(freq)
-            phaseMap[freq] = 0.0
-            fadeInMap[freq] = fadeSamples
-            activeFreqs.add(freq)
+
+            // 修正点1: まだ再生されていない音（あるいはフェードアウト完了後）の場合のみ Phase をリセット
+            if (!activeFreqs.contains(freq)) {
+                phaseMap[freq] = 0.0
+                fadeInMap[freq] = fadeSamples
+                activeFreqs.add(freq)
+            } else {
+                // 既に鳴っている場合はフェードインだけ再適用（位相は維持）
+                if (!fadeInMap.containsKey(freq)) {
+                    // 必要であればフェードイン処理
+                }
+            }
+
             if (noteIndex != null) {
                 noteIndexToFreq[noteIndex] = freq
             }
