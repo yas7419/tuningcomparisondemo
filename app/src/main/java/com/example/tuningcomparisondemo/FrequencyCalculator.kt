@@ -5,43 +5,61 @@ enum class ChordType { MAJOR, MINOR }
 class FrequencyCalculator(
     private var basePitchHz: Double = 440.0, // A4
     private var tuningMode: TuningMode = TuningMode.JUST,
+    private var seventhMode: SeventhMode = SeventhMode.HARMONIC, // デフォルトを自然7度に設定（お好みで変更可）
     private var instrumentKey: InstrumentKey = InstrumentKey.C,
     private var chordRoot: Int = 0, // 0 = C, 1 = C#, ... 11 = B
     private var chordType: ChordType = ChordType.MAJOR
 ) {
-    // 根音（Root）からの半音オフセット（0〜11）に対する純正律比率
-    private val justRatiosMajor = mapOf(
-        0 to 1.0,
-        1 to 16.0 / 15.0,
-        2 to 9.0 / 8.0,
-        3 to 6.0 / 5.0,
-        4 to 5.0 / 4.0,
-        5 to 4.0 / 3.0,
-        6 to 45.0 / 32.0,
-        7 to 3.0 / 2.0,
-        8 to 8.0 / 5.0,
-        9 to 5.0 / 3.0,
-        10 to 9.0 / 5.0,
-        11 to 15.0 / 8.0
-    )
 
-    private val justRatiosMinor = mapOf(
-        0 to 1.0,
-        1 to 16.0 / 15.0,
-        2 to 9.0 / 8.0,
-        3 to 6.0 / 5.0,
-        4 to 5.0 / 4.0,
-        5 to 4.0 / 3.0,
-        6 to 45.0 / 32.0,
-        7 to 3.0 / 2.0,
-        8 to 8.0 / 5.0,
-        9 to 5.0 / 3.0,
-        10 to 9.0 / 5.0,
-        11 to 15.0 / 8.0
-    )
+    // 7度モードの設定／取得
+    fun setSeventhMode(mode: SeventhMode) { seventhMode = mode }
+    fun getSeventhMode(): SeventhMode = seventhMode
 
-    private fun getRatios(): Map<Int, Double> =
-        if (chordType == ChordType.MAJOR) justRatiosMajor else justRatiosMinor
+    // 7度の比率を取得するヘルパー関数
+    private fun getSeventhRatio(): Double {
+        return if (seventhMode == SeventhMode.HARMONIC) {
+            7.0 / 4.0 // 自然7度
+        } else {
+            9.0 / 5.0 // クラシック系短7度
+        }
+    }
+
+    // 動的に比率マップを取得するように変更
+    private fun getRatios(): Map<Int, Double> {
+        val seventhRatio = getSeventhRatio()
+
+        return if (chordType == ChordType.MAJOR) {
+            mapOf(
+                0 to 1.0,
+                1 to 16.0 / 15.0,
+                2 to 9.0 / 8.0,
+                3 to 6.0 / 5.0,
+                4 to 5.0 / 4.0,
+                5 to 4.0 / 3.0,
+                6 to 45.0 / 32.0,
+                7 to 3.0 / 2.0,
+                8 to 8.0 / 5.0,
+                9 to 5.0 / 3.0,
+                10 to seventhRatio, // ★切り替え対応
+                11 to 15.0 / 8.0
+            )
+        } else {
+            mapOf(
+                0 to 1.0,
+                1 to 16.0 / 15.0,
+                2 to 9.0 / 8.0,
+                3 to 6.0 / 5.0,
+                4 to 5.0 / 4.0,
+                5 to 4.0 / 3.0,
+                6 to 45.0 / 32.0,
+                7 to 3.0 / 2.0,
+                8 to 8.0 / 5.0,
+                9 to 5.0 / 3.0,
+                10 to seventhRatio, // ★切り替え対応
+                11 to 15.0 / 8.0
+            )
+        }
+    }
 
     fun setChordRoot(root: Int) { chordRoot = (root % 12 + 12) % 12 }
     fun getChordRoot(): Int = chordRoot

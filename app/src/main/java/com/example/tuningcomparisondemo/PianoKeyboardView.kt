@@ -47,12 +47,12 @@ class PianoKeyboardView @JvmOverloads constructor(
 
     // 文字サイズを大きく設定 (24f -> 28f, 18f -> 20f)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 34f
+        textSize = 36f
         textAlign = Paint.Align.CENTER
         isFakeBoldText = true // 太字にしてさらに視認性を向上
     }
     private val subTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 22f
+        textSize = 30f
         textAlign = Paint.Align.CENTER
     }
 
@@ -129,22 +129,42 @@ class PianoKeyboardView @JvmOverloads constructor(
             }
         } else {
             // --- 横画面 (Landscape) ---
-            val colWidth = w / 12f
             val sortedNotes = notes.sortedBy { it.noteIndex }
+            val naturalNotes = sortedNotes.filter { !it.isSharpFlat }
+            val whiteKeyCount = if (naturalNotes.isNotEmpty()) naturalNotes.size else 7
 
-            for (i in sortedNotes.indices) {
-                val note = sortedNotes[i]
-                val left = i * colWidth
-                val right = (i + 1) * colWidth
+            // 1. 最左端の音（noteIndex最小）が黒鍵かどうか判定
+            val minNote = sortedNotes.minByOrNull { it.noteIndex }
+            val startsWithBlackKey = minNote?.isSharpFlat == true
 
-                val rect = if (note.isSharpFlat) {
-                    RectF(left + 1f, 0f, right - 1f, h * 0.65f)
+            // 2. 画面の利用可能幅を算出
+            // 最左端が黒鍵の場合、黒鍵の左半分を収めるための余白(startOffset)を左側に確保する
+            // 白鍵幅は余白を除いた残りの幅を白鍵数で割って決定
+            val tempWhiteWidth = w / whiteKeyCount.toFloat()
+            val blackKeyWidth = tempWhiteWidth * 0.6f
+            val startOffset = if (startsWithBlackKey) blackKeyWidth / 2f else 0f
+
+            val availableWidth = w - startOffset
+            val whiteKeyWidth = availableWidth / whiteKeyCount.toFloat()
+
+            var whiteKeyIndex = 0
+
+            for (note in sortedNotes) {
+                if (!note.isSharpFlat) {
+                    // 白鍵の配置（startOffset分だけ右にシフト）
+                    val left = startOffset + (whiteKeyIndex * whiteKeyWidth)
+                    val right = startOffset + ((whiteKeyIndex + 1) * whiteKeyWidth)
+                    keyRects[note.noteIndex] = RectF(left + 1f, 0f, right - 1f, h.toFloat())
+                    whiteKeyIndex++
                 } else {
-                    RectF(left + 1f, 0f, right - 1f, h.toFloat())
-                }
+                    // 黒鍵の配置: Xの中心を白鍵の境界線上に配置
+                    // 最左端の黒鍵（whiteKeyIndex == 0）の場合、boundaryX は startOffset(= blackKeyWidth / 2f) となり、
+                    // left は Exactly 0f となって切られることなくフルサイズで描画されます。
+                    val boundaryX = startOffset + (whiteKeyIndex * whiteKeyWidth)
+                    val left = boundaryX - (blackKeyWidth / 2f)
+                    val right = boundaryX + (blackKeyWidth / 2f)
 
-                keyRects[note.noteIndex] = rect
-                if (note.isSharpFlat) {
+                    keyRects[note.noteIndex] = RectF(left, 0f, right, h * 0.65f)
                     blackKeyNoteIndices.add(note.noteIndex)
                 }
             }
@@ -221,19 +241,43 @@ class PianoKeyboardView @JvmOverloads constructor(
             }
 
             // 文字拡大に伴い上下の描画オフセットを調整
-            canvas.drawText(line1, cx, cy - 6f, textPaint)
-            canvas.drawText(line2, cx, cy + 26f, subTextPaint)
+            canvas.drawText(line1, cx, cy - 10f, textPaint)
+            canvas.drawText(line2, cx, cy + 30f, subTextPaint)
         } else {
+            // --- 横画面 (Landscape) ---
             val cx = rect.centerX()
             val prefix = if (note.isRoot) "★ " else ""
-            val line1 = "$prefix${note.nameLabel}"
-            val line2 = "[${note.intervalLabel}]"
-            val line3 = "${"%.1f".format(note.centDiff)}c"
 
-            val yOffset = cy - 8f
-            canvas.drawText(line1, cx, yOffset - 20f, textPaint)
-            canvas.drawText(line2, cx, yOffset + 6f, subTextPaint)
-            canvas.drawText(line3, cx, yOffset + 28f, subTextPaint)
+            if (note.isSharpFlat) {
+                // 黒鍵: 音名（例 "D#/Eb (C#/Db)"）を記譜音と実音(括弧内)の2段に分割
+                val rawName = note.nameLabel
+                val bracketIndex = rawName.indexOf("(")
+
+                val lineNotation = if (bracketIndex != -1) rawName.substring(0, bracketIndex).trim() else rawName
+                val lineConcert = if (bracketIndex != -1) rawName.substring(bracketIndex).trim() else ""
+
+                val lineInterval = "[${note.intervalLabel}]"
+                val lineCent = "${"%.1f".format(note.centDiff)}c"
+
+                // 基準位置から行間を詰めて上から順に描画
+                val startY = cy - 40f
+                canvas.drawText("$prefix$lineNotation", cx, startY, textPaint)
+                if (lineConcert.isNotEmpty()) {
+                    canvas.drawText(lineConcert, cx, startY + 30f, subTextPaint)
+                }
+                canvas.drawText(lineInterval, cx, startY + 58f, subTextPaint)
+                canvas.drawText(lineCent, cx, startY + 86f, subTextPaint)
+            } else {
+                // 白鍵: 文字サイズを大きくし、位置をもう少し下（底面から10%の位置）へ移動
+                val line1 = "$prefix${note.nameLabel}"
+                val line2 = "[${note.intervalLabel}]"
+                val line3 = "${"%.1f".format(note.centDiff)}c"
+
+                val startY = rect.bottom - (rect.height() * 0.10f)
+                canvas.drawText(line1, cx, startY - 62f, textPaint)
+                canvas.drawText(line2, cx, startY - 28f, subTextPaint)
+                canvas.drawText(line3, cx, startY + 6f, subTextPaint)
+            }
         }
     }
 

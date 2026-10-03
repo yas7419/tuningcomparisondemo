@@ -72,6 +72,14 @@
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:text="純正律 / 平均律" />
+
+        <Switch
+            android:id="@+id/switchSeventhMode"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="自然7度 (7/4)"
+            android:checked="true"
+            android:layout_marginStart="16dp" />
     </LinearLayout>
 
     <TextView

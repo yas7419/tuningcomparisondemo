@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         spinnerPitch = findViewById(R.id.spinnerBasePitch)
         switchChordType = findViewById(R.id.switchChordType)
         val switchTuning = findViewById<Switch>(R.id.switchTuningMode)
+        val switchSeventh = findViewById<Switch>(R.id.switchSeventhMode)
         val buttonStop = findViewById<Button>(R.id.buttonStop)
         textResult = findViewById(R.id.textResult)
 
@@ -121,6 +122,14 @@ class MainActivity : AppCompatActivity() {
         switchTuning.setOnCheckedChangeListener { _, isChecked ->
             applyModeChangeWithFade {
                 calculator.setTuningMode(if (isChecked) TuningMode.EQUAL else TuningMode.JUST)
+            }
+        }
+
+        // 6. 自然7度 (7/4) / クラシック系短7度 (9/5) 切り替えイベント
+        switchSeventh.isChecked = (calculator.getSeventhMode() == SeventhMode.HARMONIC)
+        switchSeventh.setOnCheckedChangeListener { _, isChecked ->
+            applyModeChangeWithFade {
+                calculator.setSeventhMode(if (isChecked) SeventhMode.HARMONIC else SeventhMode.CLASSIC)
             }
         }
 
@@ -247,7 +256,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 純正律 / 平均律 切替時の処理：
+     * 純正律 / 平均律 / 自然7度 切替時の処理：
      * 旧周波数の音を正しく停止してから音律設定を更新し、
      * 新しい周波数で発音を再開することで「うなり」を発生させずに切り替えます。
      */
@@ -265,7 +274,7 @@ class MainActivity : AppCompatActivity() {
             toneGenerator.stopTone(noteIndex)
         }
 
-        // 2. 音律設定の変更（純正律 ⇔ 平均律）
+        // 2. 音律設定の変更（純正律 ⇔ 平均律 ⇔ 自然7度）
         applySetting()
 
         // 3. 新しい周波数で再発音
