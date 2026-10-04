@@ -141,8 +141,6 @@ class MainActivity : AppCompatActivity() {
         buttonOctaveUp = findViewById(R.id.buttonOctaveUp)
         buttonOctaveUp.setOnClickListener {
             if (currentOctave < maxOctave) {
-                currentOctave++
-                //stopAllPlayback()
                 changeOctave(1 )
             }
         }
@@ -150,8 +148,6 @@ class MainActivity : AppCompatActivity() {
         buttonOctaveDown = findViewById(R.id.buttonOctaveDown)
         buttonOctaveDown.setOnClickListener {
             if (currentOctave > minOctave) {
-                currentOctave--
-                //stopAllPlayback()
                 changeOctave(-1)
             }
         }
