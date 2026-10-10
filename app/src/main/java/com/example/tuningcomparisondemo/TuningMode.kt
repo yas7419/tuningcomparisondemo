@@ -13,3 +13,9 @@ enum class SeventhMode {
     CLASSIC,  // クラシック系短7度 (9/5)
     HARMONIC  // 自然7度 (7/4)
 }
+
+// クラス内部に定義することで、ビューの一部として確実に保持される
+enum class ClefType {
+    TREBLE, // ト音記号
+    BASS    // ヘ音記号
+}

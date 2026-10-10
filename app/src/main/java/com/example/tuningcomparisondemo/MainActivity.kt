@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
@@ -11,7 +12,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var calculator: FrequencyCalculator
     private lateinit var toneGenerator: ToneGenerator
     private lateinit var switchChordType: Switch
-    private lateinit var pianoKeyboardView: PianoKeyboardView
+    private var pianoKeyboardView: PianoKeyboardView? = null
+    private var staffScoreView: StaffScoreView? = null
+
 
     private val playingNotes = mutableMapOf<Int, Boolean>() // noteIndex (0..11) -> 再生中かどうか
     private val originalFreqMap = mutableMapOf<Int, Double>()
@@ -26,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var spinnerRoot: Spinner
     private lateinit var spinnerInst: Spinner
     private lateinit var spinnerPitch: Spinner
+
+    private var spinnerClef: Spinner? = null
 
     // シャープとフラットの両方を併記した音名を取得（Minorの場合は小文字に変換）
     private fun getNoteDisplayName(index: Int, isMinor: Boolean): String {
@@ -56,10 +61,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // 縦画面の場合のみ存在する PianoKeyboardView
         pianoKeyboardView = findViewById(R.id.pianoKeyboardView)
-        pianoKeyboardView.setOnKeyClickListener { noteIndex ->
+        pianoKeyboardView?.setOnKeyClickListener { noteIndex ->
             toggleNotePlayback(noteIndex)
         }
+
+        // 横画面の場合のみ存在する StaffScoreView
+        staffScoreView = findViewById(R.id.staffScoreView)
+        // ★ 追加: 横画面の五線譜タップイベントリスナー
+        staffScoreView?.onNoteClickListener = StaffScoreView.OnNoteClickListener { index, _ ->
+            toggleNotePlayback(index)
+        }
+
+        // 横画面の場合のみ存在する spinnerClef
+        spinnerClef = findViewById(R.id.spinnerClef)
 
         spinnerRoot = findViewById(R.id.spinnerChordRoot)
         spinnerInst = findViewById(R.id.spinnerInstrument)
@@ -68,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         val switchTuning = findViewById<Switch>(R.id.switchTuningMode)
         val switchSeventh = findViewById<Switch>(R.id.switchSeventhMode)
         val buttonStop = findViewById<Button>(R.id.buttonStop)
-        textResult = findViewById(R.id.textResult)
+        //textResult = findViewById(R.id.textResult)
 
         // 1. 根音選択イベント -> 再生停止
         spinnerRoot.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -108,13 +124,25 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
+        // 横画面専用: spinnerClef のイベント処理
+        spinnerClef?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val clef = if (position == 0) ClefType.TREBLE else ClefType.BASS
+                staffScoreView?.setClef(clef)
+                stopAllPlayback()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
         // 初期選択の設定
         spinnerInst.setSelection(1) // B♭管
         spinnerPitch.setSelection(4) // 442Hz
 
         // 4. 長調 / 短調 切り替えイベント -> 再生停止
         switchChordType.setOnCheckedChangeListener { _, isChecked ->
-            calculator.setChordType(if (isChecked) ChordType.MINOR else ChordType.MAJOR)
+            val type = if (isChecked) ChordType.MINOR else ChordType.MAJOR
+            Log.d("ScoreDebug", "MainActivity.switchChordType changed -> isChecked=$isChecked, setChordType=$type")
+            calculator.setChordType(type)
             stopAllPlayback()
         }
 
@@ -187,6 +215,14 @@ class MainActivity : AppCompatActivity() {
         val chordRoot = calculator.getChordRoot()
         val isMinor = (calculator.getChordType() == ChordType.MINOR)
 
+        val chordType = calculator.getChordType()
+        val instKey = calculator.getInstrumentKey()
+
+        Log.d("ScoreDebug", "MainActivity.updateNoteButtons -> chordRoot=$chordRoot, chordType=$chordType, instKey=$instKey")
+
+        // ★追加: 横画面用 StaffScoreView に調号計算パラメータをセット
+        staffScoreView?.setKeyConfiguration(chordRoot, chordType, instKey)
+
         val noteItems = mutableListOf<NoteItem>()
 
         for (noteIndex in 0..11) {
@@ -226,7 +262,12 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        pianoKeyboardView.setNotes(noteItems)
+        // 縦画面にいる場合は鍵盤を更新
+        pianoKeyboardView?.setNotes(noteItems)
+
+        // 横画面にいる場合は楽譜ビューを更新
+        staffScoreView?.setNotes(noteItems)
+
         updateOctaveButtons()
     }
 

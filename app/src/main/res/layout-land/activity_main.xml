@@ -7,133 +7,117 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="8dp">
-
     <LinearLayout
-        android:id="@+id/instrumentLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="2dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-    <Spinner
-        android:id="@+id/spinnerInstrument"
-        android:layout_width="0dp"
-        android:layout_height="36dp"
-        android:layout_weight="1"
-        android:entries="@array/instruments" />
+        <!-- 1段目：コントロールバー（1行に集約） -->
+        <LinearLayout
+            android:id="@+id/topControlLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="2dp">
 
-    <Spinner
-        android:id="@+id/spinnerBasePitch"
-        android:layout_width="0dp"
-        android:layout_height="36dp"
-        android:layout_weight="1"
-        android:entries="@array/base_pitches" />
-    </LinearLayout>
+            <!-- 事前設定グループ -->
+            <Spinner
+                android:id="@+id/spinnerInstrument"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:entries="@array/instruments" />
 
-    <LinearLayout
-        android:id="@+id/keyModeLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="2dp">
+            <Spinner
+                android:id="@+id/spinnerBasePitch"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:entries="@array/base_pitches" />
 
-        <Spinner
-            android:id="@+id/spinnerChordRoot"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
+            <!-- ★新設：音部記号 Spinner -->
+            <Spinner
+                android:id="@+id/spinnerClef"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:entries="@array/clefs" />
+
+            <!-- アクティブ操作グループ -->
+            <Spinner
+                android:id="@+id/spinnerChordRoot"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:entries="@array/chord_roots" />
+
+            <Switch
+                android:id="@+id/switchChordType"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Maj/Min"
+                android:layout_marginStart="8dp" />
+
+            <Switch
+                android:id="@+id/switchTuningMode"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="純正/平均"
+                android:layout_marginStart="8dp" />
+
+            <Switch
+                android:id="@+id/switchSeventhMode"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="自然7度"
+                android:checked="true"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- 2段目：楽譜ビューエリア (Custom View) -->
+        <com.example.tuningcomparisondemo.StaffScoreView
+            android:id="@+id/staffScoreView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:entries="@array/chord_roots" />
+            android:background="#FFFFF8"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp" />
 
-        <Switch
-            android:id="@+id/switchChordType"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="Major / Minor"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/modeControlLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp">
-        <Switch
-            android:id="@+id/switchTuningMode"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="純正律 / 平均律" />
-
-        <Switch
-            android:id="@+id/switchSeventhMode"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="自然7度 (7/4)"
-            android:checked="true"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/textResult"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="選択内容と計算結果がここに表示されます" />
-
-    <com.example.tuningcomparisondemo.PianoKeyboardView
-        android:id="@+id/pianoKeyboardView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#000000"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp" />
-
-    <LinearLayout
-        android:id="@+id/octaveControlLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="2dp">
-
-        <Button
-            android:id="@+id/buttonOctaveDown"
-            android:layout_width="wrap_content"
+        <!-- 3段目：アクションバー（1行に集約） -->
+        <LinearLayout
+            android:id="@+id/bottomActionLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="オクターブ下げ" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <Button
-            android:id="@+id/buttonOctaveUp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="オクターブ上げ"
-            android:layout_marginStart="16dp" />
+            <Button
+                android:id="@+id/buttonOctaveDown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="オクターブ下げ" />
+
+            <Button
+                android:id="@+id/buttonOctaveUp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="オクターブ上げ"
+                android:layout_marginStart="8dp" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/buttonStop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="停止" />
+        </LinearLayout>
 
     </LinearLayout>
-
-    <Button
-        android:id="@+id/buttonStop"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="停止" />
-
-    <Button
-        android:id="@+id/debugToggleUiUpdatesButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="UI更新/更新停止" />
-
-</LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
